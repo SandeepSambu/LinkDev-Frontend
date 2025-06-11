@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import UserContext from "../../utils/userContext";
 import { BASE_URL } from "../../utils/constants";
 
@@ -22,9 +22,18 @@ const EditProfileForm = ({ initialData, setPage }) => {
     }
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      success && setSuccess(false);
+      err && setErr(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [success, err]);
+
   const validate = () => {
     const newErrors = {};
-    if (!form.username) newErrors.usename = "Full name is required.";
+    if (!form.username) newErrors.name = "Full name is required.";
     if (!form.title) newErrors.title = "Title is required.";
     if (form.bio.length > 150)
       newErrors.bio = "Bio cannot exceed 150 characters.";
@@ -45,13 +54,29 @@ const EditProfileForm = ({ initialData, setPage }) => {
     e.preventDefault();
     if (!validate()) return;
 
+    const formData = new FormData();
+
+    formData.append("userName", form.username);
+    formData.append("title", form.title);
+    formData.append("bio", form.bio);
+    formData.append("location", form.location);
+    formData.append("github", form.github);
+    formData.append("linkedin", form.linkedin);
+
+    if (form.avatar) {
+      formData.append("avatar", form.avatar);
+    }
+
     try {
-      const user = await axios.put(BASE_URL + "/updateUser", form, {
+      const user = await axios.patch(BASE_URL + "/updateUser", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
         withCredentials: true,
       });
 
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      localStorage.setItem("user", JSON.stringify(user.data));
+      setUser(user.data);
       setSuccess(true);
     } catch (err) {
       setErr(true);
@@ -155,7 +180,11 @@ const EditProfileForm = ({ initialData, setPage }) => {
           />
           {form.avatar && (
             <img
-              src={form.avatar}
+              src={
+                typeof form.avatar === "string"
+                  ? `${BASE_URL}${form.avatar}`
+                  : URL.createObjectURL(form.avatar)
+              }
               alt="preview"
               className="mt-2 w-24 h-24 rounded-full object-cover"
             />

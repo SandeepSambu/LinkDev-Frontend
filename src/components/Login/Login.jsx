@@ -12,6 +12,10 @@ const Login = ({ setFlag, setError }) => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    if (!loginEmail || !loginPassword) {
+      setError("Invalid Credentials");
+      return;
+    }
     try {
       const response = await axios.post(
         BASE_URL + "/login",
