@@ -1,2 +1,5 @@
+const DEV_URL = "http://localhost:5000";
+const PROD_URL = "https://linkdev-backend-gspv.onrender.com";
+
 export const BASE_URL =
-  "https://exquisite-palmier-412af1.netlify.app/.netlify/functions/server";
+  import.meta.env.MODE === "development" ? DEV_URL : PROD_URL;
